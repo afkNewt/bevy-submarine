@@ -1,20 +1,33 @@
 use rand::distributions::Bernoulli;
 
-use crate::map_generator::{MapGenerator, MAP_HEIGHT, MAP_WIDTH};
+use crate::map_generator::MapGenerator;
 
 pub fn generate_vertices(
     square_size: f32,
+    map_width: usize,
+    map_height: usize,
+    map_distribution: Bernoulli,
+    map_smoothing: usize,
+    min_wall_region_size: usize,
+    min_air_region_size: usize,
 ) -> (
     std::vec::Vec<[f32; 3]>,
     std::vec::Vec<[f32; 3]>,
     std::vec::Vec<[f32; 2]>,
     std::vec::Vec<u32>,
 ) {
-    let map_gen = MapGenerator::new(Bernoulli::new(0.45).unwrap(), 10);
+    let map_gen = MapGenerator::new(
+        map_width,
+        map_height,
+        map_distribution,
+        map_smoothing,
+        min_wall_region_size,
+        min_air_region_size,
+    );
     let grid = map_gen.map;
 
     let get_point_int = |x: usize, y: usize| -> u8 {
-        if x >= MAP_WIDTH || y >= MAP_HEIGHT {
+        if x >= map_gen.width || y >= map_gen.height {
             return 1;
         }
         return grid[x][y] as u8;
@@ -26,15 +39,15 @@ pub fn generate_vertices(
     let mut indices: Vec<u32> = Vec::new();
 
     // Iterate over 4 grid points at a time
-    for row in 0..(MAP_HEIGHT) {
-        for col in 0..(MAP_WIDTH) {
+    for row in 0..(map_gen.height) {
+        for col in 0..(map_gen.width) {
             let value = (get_point_int(col, row) * 8
                 + get_point_int(col + 1, row) * 4
                 + get_point_int(col + 1, row + 1) * 2
                 + get_point_int(col, row + 1) * 1) as u8;
 
-            let left_x = col as f32 * square_size - (MAP_WIDTH as f32 * square_size) / 2.;
-            let top_y = row as f32 * square_size - (MAP_HEIGHT as f32 * square_size) / 2.;
+            let left_x = col as f32 * square_size - (map_gen.width as f32 * square_size) / 2.;
+            let top_y = row as f32 * square_size - (map_gen.height as f32 * square_size) / 2.;
 
             let right_x = left_x + square_size;
             let bottom_y = top_y + square_size;
