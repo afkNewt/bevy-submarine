@@ -4,27 +4,16 @@ use bevy::{
     render::mesh::{Indices, PrimitiveTopology},
 };
 
-const CHUNK_SIZE: usize = 16;
+pub const CHUNK_SIZE: usize = 16;
+const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Chunk {
-    pub points: [[bool; CHUNK_SIZE + 2]; CHUNK_SIZE + 2],
+    pub points: [[bool; PADDED_CHUNK_SIZE]; PADDED_CHUNK_SIZE],
 }
 
 impl Chunk {
-    pub fn new(mut map: Vec<Vec<bool>>) -> Self {
-        const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
-
-        while map.len() < PADDED_CHUNK_SIZE {
-            map.push(vec![false; PADDED_CHUNK_SIZE]);
-        }
-
-        for x in 0..PADDED_CHUNK_SIZE {
-            while map[x].len() < PADDED_CHUNK_SIZE {
-                map[x].push(false);
-            }
-        }
-
+    pub fn new(map: Vec<Vec<bool>>) -> Self {
         let mut points = [[false; PADDED_CHUNK_SIZE]; PADDED_CHUNK_SIZE];
 
         for x in 0..PADDED_CHUNK_SIZE {
@@ -393,12 +382,12 @@ impl Chunk {
     }
 }
 
-pub struct Terrain {
+pub struct ChunkMap {
     pub map: Vec<Vec<Chunk>>,
     pub square_size: f32,
 }
 
-impl Terrain {
+impl ChunkMap {
     pub fn new(base_map: Vec<Vec<bool>>, square_size: f32) -> Self {
         const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
 

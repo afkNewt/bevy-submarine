@@ -1,31 +1,36 @@
+use bevy::prelude::Resource;
 use rand::{distributions::Bernoulli, prelude::Distribution};
 
-pub struct MapGenerator {
-    pub map: Vec<Vec<bool>>,
-    pub distribution: Bernoulli,
+use super::chunk::CHUNK_SIZE;
+
+#[derive(Resource, Clone)]
+pub struct Map {
+    pub points: Vec<Vec<bool>>,
     pub width: usize,
     pub height: usize,
 }
 
-impl MapGenerator {
+impl Map {
     pub fn new(
-        width: usize,
-        height: usize,
+        chunk_x: usize,
+        chunk_y: usize,
         distribution: Bernoulli,
         smoothing: usize,
         min_wall_region_size: usize,
         min_air_region_size: usize,
     ) -> Self {
+        let width = chunk_x * CHUNK_SIZE + 2;
+        let height = chunk_y * CHUNK_SIZE + 2;
+
         let mut map_gen = Self {
-            map: vec![vec![false; height]; width],
-            distribution,
+            points: vec![vec![false; height]; width],
             width,
             height,
         };
 
         map_gen.clean_map(min_wall_region_size, min_air_region_size);
 
-        map_gen.random_fill();
+        map_gen.random_fill(distribution);
         for _ in 0..smoothing {
             map_gen.smooth_map();
         }
@@ -36,8 +41,8 @@ impl MapGenerator {
     }
 
     fn smooth_map(&mut self) {
-        for x in 0..(self.width) {
-            for y in 0..(self.height) {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 let neighbors = self.get_nieghbor_wall_count(x as i32, y as i32);
 
                 if x == 0 || x == self.width - 1 || y == 0 || y == self.height - 1 {
@@ -45,9 +50,9 @@ impl MapGenerator {
                 }
 
                 if neighbors > 4 {
-                    self.map[x][y] = true;
+                    self.points[x][y] = true;
                 } else if neighbors < 4 {
-                    self.map[x][y] = false;
+                    self.points[x][y] = false;
                 }
             }
         }
@@ -62,7 +67,7 @@ impl MapGenerator {
             }
 
             for (x, y) in region {
-                self.map[x][y] = false;
+                self.points[x][y] = false;
             }
         }
 
@@ -74,7 +79,7 @@ impl MapGenerator {
             }
 
             for (x, y) in region {
-                self.map[x][y] = true;
+                self.points[x][y] = true;
             }
         }
     }
@@ -95,7 +100,7 @@ impl MapGenerator {
             if !self.is_in_map(*x as usize, *y as usize) {
                 true
             } else {
-                self.map[*x as usize][*y as usize]
+                self.points[*x as usize][*y as usize]
             }
         })
         .count() as i32;
@@ -105,7 +110,7 @@ impl MapGenerator {
         let mut contiguous_tiles = Vec::new();
         let mut queued_tiles = Vec::new();
         let mut viewed_tiles = vec![vec![false; self.height]; self.width];
-        let target_tile_type = self.map[start_x][start_y];
+        let target_tile_type = self.points[start_x][start_y];
 
         queued_tiles.push((start_x, start_y));
         viewed_tiles[start_x][start_y] = true;
@@ -122,7 +127,7 @@ impl MapGenerator {
                     continue;
                 }
 
-                if self.map[target_x][target_y] != target_tile_type {
+                if self.points[target_x][target_y] != target_tile_type {
                     continue;
                 }
 
@@ -148,7 +153,7 @@ impl MapGenerator {
 
         for x in 0..self.width {
             for y in 0..self.height {
-                if self.map[x][y] != tile_type {
+                if self.points[x][y] != tile_type {
                     continue;
                 }
 
@@ -173,13 +178,13 @@ impl MapGenerator {
         return !(x >= self.width || y >= self.height);
     }
 
-    fn random_fill(&mut self) {
-        for x in 0..(self.width) {
-            for y in 0..(self.height) {
+    fn random_fill(&mut self, distribution: Bernoulli) {
+        for x in 0..self.width {
+            for y in 0..self.height {
                 if x == 0 || x == self.width - 1 || y == 0 || y == self.height - 1 {
-                    self.map[x][y] = true;
+                    self.points[x][y] = true;
                 } else {
-                    self.map[x][y] = self.distribution.sample(&mut rand::thread_rng());
+                    self.points[x][y] = distribution.sample(&mut rand::thread_rng());
                 }
             }
         }
