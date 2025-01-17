@@ -93,7 +93,7 @@ impl MapGenerator {
         .iter()
         .filter(|(x, y)| {
             if !self.is_in_map(*x as usize, *y as usize) {
-                false
+                true
             } else {
                 self.map[*x as usize][*y as usize]
             }
