@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use terrain::{TerrainPlugin, WALL_COLOR};
+use terrain::{chunk::CHUNK_SIZE, TerrainPlugin, SQUARE_SIZE, WALL_COLOR};
 
 mod terrain;
 
@@ -13,5 +13,13 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    // in the future camera pos should follow plyar, so main won't know it
+    commands.spawn((
+        Camera2d::default(),
+        Transform::from_xyz(
+            15. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
+            8. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
+            0.,
+        ),
+    ));
 }

@@ -7,7 +7,7 @@ use bevy::{
 pub const CHUNK_SIZE: usize = 16;
 const PADDED_CHUNK_SIZE: usize = CHUNK_SIZE + 2;
 
-#[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Chunk {
     pub points: [[bool; PADDED_CHUNK_SIZE]; PADDED_CHUNK_SIZE],
 }

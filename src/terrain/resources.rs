@@ -1,7 +1,17 @@
-use bevy::prelude::Resource;
+use bevy::{
+    math::{UVec2, Vec2},
+    prelude::Resource,
+};
 use rand::{distributions::Bernoulli, prelude::Distribution};
 
+use crate::terrain::SQUARE_SIZE;
+
 use super::chunk::CHUNK_SIZE;
+
+#[derive(Resource, Default, Clone)]
+pub struct ChunksPendingRebuild {
+    pub chunks: Vec<UVec2>,
+}
 
 #[derive(Resource, Clone)]
 pub struct Map {
@@ -38,6 +48,24 @@ impl Map {
         map_gen.clean_map(min_wall_region_size, min_air_region_size);
 
         return map_gen;
+    }
+
+    pub fn world_space_to_index(&self, pos: Vec2) -> Option<(usize, usize)> {
+        // pretty confident this "8. * SQUARE_SIZE" thing has something to do with the
+        // padding on the edges of the map
+        let pos = Vec2::new(pos.x + 8. * SQUARE_SIZE, pos.y + 8. * SQUARE_SIZE);
+
+        let width = self.width as f32 * SQUARE_SIZE;
+        let height = self.height as f32 * SQUARE_SIZE;
+
+        if pos.x <= 0. || pos.x >= width || pos.y <= 0. || pos.y >= height {
+            return None;
+        }
+
+        return Some((
+            (pos.x / SQUARE_SIZE) as usize,
+            (pos.y / SQUARE_SIZE) as usize,
+        ));
     }
 
     fn smooth_map(&mut self) {

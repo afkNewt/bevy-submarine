@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::distributions::Bernoulli;
-use resources::Map;
-use systems::setup_map;
+use resources::{ChunksPendingRebuild, Map};
+use systems::{draw_on_map, regenerate_chunks, setup_map};
 
 pub mod components;
 pub mod resources;
@@ -9,7 +9,7 @@ pub mod systems;
 
 pub mod chunk;
 
-const SQUARE_SIZE: f32 = 6.;
+pub const SQUARE_SIZE: f32 = 5.;
 
 pub const WATER_COLOR: Color = Color::hsl(230.0, 0.4, 0.3);
 pub const WALL_COLOR: Color = Color::hsl(230.0, 0.1, 0.3);
@@ -18,7 +18,10 @@ pub struct TerrainPlugin;
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Map::new(12, 7, Bernoulli::new(0.48).unwrap(), 4, 50, 500))
-            .add_systems(Startup, setup_map);
+        app.insert_resource(Map::new(16, 9, Bernoulli::new(0.48).unwrap(), 4, 50, 500))
+            .insert_resource(ChunksPendingRebuild::default())
+            .add_systems(Startup, setup_map)
+            .add_systems(Update, draw_on_map)
+            .add_systems(Update, regenerate_chunks);
     }
 }
