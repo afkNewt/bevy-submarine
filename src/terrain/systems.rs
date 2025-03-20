@@ -1,6 +1,6 @@
-use bevy::{prelude::*, reflect::List, render::render_resource::encase::rts_array::Length};
+use bevy::prelude::*;
 
-use crate::terrain::{self, components::TerrainMesh, WALL_COLOR};
+use crate::terrain::{components::TerrainMesh, WALL_COLOR};
 
 use super::{
     chunk::{ChunkMap, CHUNK_SIZE},
@@ -56,8 +56,13 @@ pub fn draw_on_map(
     mut chunks_pending_rebuild: ResMut<ChunksPendingRebuild>,
     mut map: ResMut<Map>,
 ) {
-    let (camera, camera_pos) = q_camera.single();
-    let window = q_window.single();
+    let Ok((camera, camera_pos)) = q_camera.single() else {
+        return;
+    };
+
+    let Ok(window) = q_window.single() else {
+        return;
+    };
 
     let Some(cursor_pos) = window
         .cursor_position()
@@ -94,7 +99,6 @@ pub fn regenerate_chunks(
     mut commands: Commands,
     q_chunks: Query<(Entity, &TerrainMesh)>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut chunks_pending_rebuild: ResMut<ChunksPendingRebuild>,
     map: Res<Map>,
 ) {
@@ -105,7 +109,6 @@ pub fn regenerate_chunks(
     let terrain = ChunkMap::new(map.points.to_owned(), SQUARE_SIZE);
 
     let mesh_handles = terrain.all_chunk_meshes(&mut meshes);
-    const CHUNK_LENGTH: f32 = CHUNK_SIZE as f32 * SQUARE_SIZE;
 
     for (entity, terrain_mesh) in q_chunks.iter() {
         let x = terrain_mesh.chunk_position.x as usize;
@@ -118,18 +121,9 @@ pub fn regenerate_chunks(
             continue;
         }
 
-        commands.entity(entity).despawn();
-
-        commands.spawn((
-            Mesh2d(mesh_handles[x][y].clone()),
-            MeshMaterial2d(materials.add(WALL_COLOR)),
-            Transform::from_translation(Vec3::new(
-                x as f32 * CHUNK_LENGTH,
-                y as f32 * CHUNK_LENGTH,
-                1.,
-            )),
-            TerrainMesh::new(UVec2::new(x as u32, y as u32)),
-        ));
+        commands
+            .entity(entity)
+            .insert(Mesh2d(mesh_handles[x][y].clone()));
     }
 
     chunks_pending_rebuild.chunks.clear();

@@ -2,7 +2,7 @@ use bevy::{
     math::{UVec2, Vec2},
     prelude::Resource,
 };
-use rand::{distributions::Bernoulli, prelude::Distribution};
+use rand::{distr::Bernoulli, prelude::Distribution};
 
 use crate::terrain::SQUARE_SIZE;
 
@@ -212,7 +212,7 @@ impl Map {
                 if x == 0 || x == self.width - 1 || y == 0 || y == self.height - 1 {
                     self.points[x][y] = true;
                 } else {
-                    self.points[x][y] = distribution.sample(&mut rand::thread_rng());
+                    self.points[x][y] = distribution.sample(&mut rand::rng());
                 }
             }
         }

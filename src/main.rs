@@ -6,7 +6,7 @@ mod terrain;
 fn main() {
     App::new()
         .insert_resource(ClearColor(WALL_COLOR))
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins,))
         .add_plugins(TerrainPlugin)
         .add_systems(Startup, setup)
         .run();
@@ -17,8 +17,8 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2d::default(),
         Transform::from_xyz(
-            15. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
-            8. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
+            7. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
+            3. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
             0.,
         ),
     ));
