@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::distr::Bernoulli;
 use resources::{ChunksPendingRebuild, Map};
-use systems::{draw_on_map, regenerate_chunks, setup_map};
+use systems::{draw_debug_chunk_borders, draw_on_map, regenerate_chunks, setup_map};
 
 pub mod components;
 pub mod resources;
@@ -21,6 +21,7 @@ impl Plugin for TerrainPlugin {
         app.insert_resource(Map::new(8, 4, Bernoulli::new(0.48).unwrap(), 4, 50, 500))
             .insert_resource(ChunksPendingRebuild::default())
             .add_systems(Startup, setup_map)
+            .add_systems(Update, draw_debug_chunk_borders)
             .add_systems(Update, draw_on_map)
             .add_systems(Update, regenerate_chunks);
     }

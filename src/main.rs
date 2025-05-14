@@ -17,8 +17,8 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2d::default(),
         Transform::from_xyz(
-            7. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
-            3. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2.,
+            7. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2. + SQUARE_SIZE,
+            3. * CHUNK_SIZE as f32 * SQUARE_SIZE / 2. + SQUARE_SIZE,
             0.,
         ),
     ));

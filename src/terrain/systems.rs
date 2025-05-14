@@ -50,6 +50,30 @@ pub fn setup_map(
     }
 }
 
+pub fn draw_debug_chunk_borders(keyboard: Res<ButtonInput<KeyCode>>, mut gizmos: Gizmos) {
+    if !keyboard.pressed(KeyCode::Space) {
+        return;
+    };
+
+    let offset = CHUNK_SIZE as f32 * SQUARE_SIZE / 2. - SQUARE_SIZE;
+    for x in 0..=8 {
+        let x = (x * CHUNK_SIZE) as f32 * SQUARE_SIZE;
+        gizmos.line_2d(
+            Vec2::new(x - offset, -offset),
+            Vec2::new(x - offset, 4. * CHUNK_SIZE as f32 * SQUARE_SIZE - offset),
+            bevy::color::palettes::css::RED,
+        );
+    }
+    for y in 0..=4 {
+        let y = (y * CHUNK_SIZE) as f32 * SQUARE_SIZE;
+        gizmos.line_2d(
+            Vec2::new(-offset, y - offset),
+            Vec2::new(8. * CHUNK_SIZE as f32 * SQUARE_SIZE - offset, y - offset),
+            bevy::color::palettes::css::RED,
+        );
+    }
+}
+
 pub fn draw_on_map(
     q_camera: Query<(&Camera, &GlobalTransform)>,
     q_window: Query<&Window>,
@@ -71,28 +95,25 @@ pub fn draw_on_map(
         return;
     };
 
-    let Some(map_index) = map.world_space_to_index(cursor_pos) else {
+    let Some((cursor_x, cursor_y)) = map.world_space_to_index(cursor_pos) else {
         return;
     };
+    map.points[cursor_x][cursor_y] = false;
 
-    let chunk_index = UVec2::new(map_index.0 as u32 / 16, map_index.1 as u32 / 16);
+    let chunk_index = UVec2::new((cursor_x - 1) as u32 / 16, (cursor_y - 1) as u32 / 16);
     chunks_pending_rebuild.chunks.push(chunk_index);
-    // if we are on the edge of a chunk, then the neighbor must be updated, could be changed to only update
-    // the neighbor that needs it
-    chunks_pending_rebuild
-        .chunks
-        .push(UVec2::new(chunk_index.x.saturating_sub(1), chunk_index.y));
-    chunks_pending_rebuild
-        .chunks
-        .push(UVec2::new(chunk_index.x + 1, chunk_index.y));
-    chunks_pending_rebuild
-        .chunks
-        .push(UVec2::new(chunk_index.x, chunk_index.y.saturating_sub(1)));
-    chunks_pending_rebuild
-        .chunks
-        .push(UVec2::new(chunk_index.x, chunk_index.y + 1));
 
-    map.points[map_index.0][map_index.1] = false;
+    // if we are on the edge of a chunk, then the neighbor must be updated
+    if cursor_x % 16 == 1 {
+        chunks_pending_rebuild
+            .chunks
+            .push(UVec2::new(chunk_index.x.saturating_sub(1), chunk_index.y));
+    }
+    if cursor_y % 16 == 1 {
+        chunks_pending_rebuild
+            .chunks
+            .push(UVec2::new(chunk_index.x, chunk_index.y.saturating_sub(1)));
+    }
 }
 
 pub fn regenerate_chunks(

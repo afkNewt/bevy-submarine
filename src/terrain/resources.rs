@@ -51,21 +51,18 @@ impl Map {
     }
 
     pub fn world_space_to_index(&self, pos: Vec2) -> Option<(usize, usize)> {
-        // pretty confident this "8. * SQUARE_SIZE" thing has something to do with the
+        // pretty confident this + 8.5 thing has something to do with the
         // padding on the edges of the map
-        let pos = Vec2::new(pos.x + 8. * SQUARE_SIZE, pos.y + 8. * SQUARE_SIZE);
+        let pos = (
+            (pos.x / SQUARE_SIZE + 8.5) as usize,
+            (pos.y / SQUARE_SIZE + 8.5) as usize,
+        );
 
-        let width = self.width as f32 * SQUARE_SIZE;
-        let height = self.height as f32 * SQUARE_SIZE;
-
-        if pos.x <= 0. || pos.x >= width || pos.y <= 0. || pos.y >= height {
+        if pos.0 == 0 || pos.0 >= self.width || pos.1 == 0 || pos.1 >= self.height {
             return None;
         }
 
-        return Some((
-            (pos.x / SQUARE_SIZE) as usize,
-            (pos.y / SQUARE_SIZE) as usize,
-        ));
+        return Some(pos);
     }
 
     fn smooth_map(&mut self) {
